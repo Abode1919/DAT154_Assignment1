@@ -1,4 +1,4 @@
-// DAT154_Assignment1_Traffic.cpp :
+ï»¿// DAT154_Assignment1_Traffic.cpp :
 #include "framework.h"
 #include "DAT154_Assignment1_Traffic.h"
 #include <vector>
@@ -24,9 +24,9 @@ INT_PTR CALLBACK    ProbDlg(HWND, UINT, WPARAM, LPARAM);
 
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
+    _In_opt_ HINSTANCE hPrevInstance,
+    _In_ LPWSTR    lpCmdLine,
+    _In_ int       nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
@@ -39,7 +39,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     MyRegisterClass(hInstance);
 
     // Perform application initialization:
-    if (!InitInstance (hInstance, nCmdShow))
+    if (!InitInstance(hInstance, nCmdShow))
     {
         return FALSE;
     }
@@ -58,7 +58,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
     }
 
-    return (int) msg.wParam;
+    return (int)msg.wParam;
 }
 
 
@@ -68,17 +68,17 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
     wcex.cbSize = sizeof(WNDCLASSEX);
 
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc    = WndProc;
-    wcex.cbClsExtra     = 0;
-    wcex.cbWndExtra     = 0;
-    wcex.hInstance      = hInstance;
-    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_DAT154ASSIGNMENT1TRAFFIC));
-    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_DAT154ASSIGNMENT1TRAFFIC);
-    wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+    wcex.style = CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc = WndProc;
+    wcex.cbClsExtra = 0;
+    wcex.cbWndExtra = 0;
+    wcex.hInstance = hInstance;
+    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_DAT154ASSIGNMENT1TRAFFIC));
+    wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_DAT154ASSIGNMENT1TRAFFIC);
+    wcex.lpszClassName = szWindowClass;
+    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
     return RegisterClassExW(&wcex);
 }
@@ -87,31 +87,31 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-   hInst = hInstance; // Store instance handle in our global variable
+    hInst = hInstance; // Store instance handle in our global variable
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
-   if (!hWnd)
-   {
-      return FALSE;
-   }
+    if (!hWnd)
+    {
+        return FALSE;
+    }
 
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
+    ShowWindow(hWnd, nCmdShow);
+    UpdateWindow(hWnd);
 
-   return TRUE;
+    return TRUE;
 }
 
 
-enum Phase { NS_GREEN, NS_YELLOW, EW_GREEN, EW_YELLOW };
+enum Phase { NS_GREEN, NS_YELLOW, NS_REDYELLOW, EW_GREEN, EW_YELLOW, EW_REDYELLOW };
 Phase phase = NS_GREEN;
 
 
 struct Car
 {
-    float x, y;       
-    float speed;      
+    float x, y;
+    float speed;
 };
 
 std::vector<Car> carsEW; // cars from west -> east
@@ -163,26 +163,35 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
+    case WM_ERASEBKGND:
+        // We repaint the whole client area ourselves (see WM_PAINT) and use
+        // double-buffering, so skipping default background erase reduces flicker.
+        return 1;
+
     case WM_TIMER:
     {
         if (wParam == 1)
         {
             switch (phase)
             {
-            case NS_GREEN:  phase = NS_YELLOW; break;
-            case NS_YELLOW: phase = EW_GREEN;  break;
-            case EW_GREEN:  phase = EW_YELLOW; break;
-            case EW_YELLOW: phase = NS_GREEN;  break;
+            case NS_GREEN:      phase = NS_YELLOW;     break;
+            case NS_YELLOW:     phase = EW_REDYELLOW;  break;
+            case EW_REDYELLOW:  phase = EW_GREEN;      break;
+            case EW_GREEN:      phase = EW_YELLOW;     break;
+            case EW_YELLOW:     phase = NS_REDYELLOW;  break;
+            case NS_REDYELLOW:  phase = NS_GREEN;      break;
             }
+            InvalidateRect(hWnd, nullptr, FALSE);
+            return 0;
         }
-        else if (wParam == 2)
-        {
 
+        if (wParam == 2)
+        {
             int roadW = 140;
-            float interLeft = (float)((stopX_EW + 10));      
-            float interTop = (float)((stopY_NS + 10));
-            float interRight = (float)(interLeft + roadW);     
-            float interBottom = (float)(interTop + roadW);
+            float interLeft = (float)(stopX_EW + 10);
+            float interTop = (float)(stopY_NS + 10);
+            float interRight = interLeft + roadW;
+            float interBottom = interTop + roadW;
 
             auto ewInIntersection = [&](const Car& c)
                 {
@@ -196,60 +205,62 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     return (frontY > interTop && c.y < interBottom);
                 };
 
-            bool anyEWInside = false;
-            for (const auto& c : carsEW) if (ewInIntersection(c)) { anyEWInside = true; break; }
+            bool anyEWInside = std::any_of(carsEW.begin(), carsEW.end(), ewInIntersection);
+            bool anyNSInside = std::any_of(carsNS.begin(), carsNS.end(), nsInIntersection);
 
-            bool anyNSInside = false;
-            for (const auto& c : carsNS) if (nsInIntersection(c)) { anyNSInside = true; break; }
-
-          
             bool ewCanGo = (phase == EW_GREEN) || (phase == EW_YELLOW);
             bool nsCanGo = (phase == NS_GREEN) || (phase == NS_YELLOW);
 
+            // Cars that have already entered the intersection should keep moving,
+            // even if the light changes while they're inside.
             for (size_t i = 0; i < carsEW.size(); i++)
             {
                 auto& c = carsEW[i];
 
                 float frontX = c.x + CAR_EW_W;
+                bool inIntersection = ewInIntersection(c);
                 bool atStopLine = (frontX >= stopX_EW);
+                bool beforeIntersectionEntry = (frontX < interLeft);
 
-                // 1) stop at red
-                if (!ewCanGo && atStopLine)
+                // 1) stop at red ONLY if we are between the stop line and the intersection entry.
+                // Once the car's FRONT has crossed into the intersection (frontX >= interLeft), it keeps going.
+                if (!ewCanGo && atStopLine && beforeIntersectionEntry)
                     continue;
 
-                // 2) do not enter intersections if NS is inside (crash prevention)
+                // 2) do not enter intersection if NS is inside (crash prevention)
                 float nextFrontX = frontX + c.speed;
-                if (anyNSInside && nextFrontX >= interLeft)
+                if (beforeIntersectionEntry && anyNSInside && nextFrontX >= interLeft)
                     continue;
 
                 // 3) queue: stop behind the car in front
                 if (i > 0)
                 {
                     const auto& prev = carsEW[i - 1];
-                    float gap = prev.x - (c.x + CAR_EW_W); //distance to the car in front
-                    if (gap < 15.0f) // 10px safe distance
+                    float gap = prev.x - (c.x + CAR_EW_W); // distance to the car in front
+                    if (gap < 15.0f)
                         continue;
                 }
 
                 c.x += c.speed;
             }
 
-
-           
             for (size_t i = 0; i < carsNS.size(); i++)
             {
                 auto& c = carsNS[i];
 
                 float frontY = c.y + CAR_NS_H;
+                bool inIntersection = nsInIntersection(c);
                 bool atStopLine = (frontY >= stopY_NS);
+                bool beforeIntersectionEntry = (frontY < interTop);
 
-                // 1) stop at red
-                if (!nsCanGo && atStopLine)
+                // 1) stop at red ONLY if we are between the stop line and the intersection entry.
+                // Once the car's FRONT has crossed into the intersection (frontY >= interTop), it keeps going.
+                if (!nsCanGo && atStopLine && beforeIntersectionEntry)
                     continue;
 
-                // 2) do not enter intersections if EW is inside (crash prevention)
+                // 2) do not enter intersection if EW is inside (crash prevention)
                 float nextFrontY = frontY + c.speed;
-                if (anyEWInside && nextFrontY >= interTop)
+                if (beforeIntersectionEntry && anyEWInside && nextFrontY >= interTop)
                     continue;
 
                 // 3) queue: stop behind the car in front
@@ -264,7 +275,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 c.y += c.speed;
             }
 
-
             // Remove cars that are out of the window
             RECT r;
             GetClientRect(hWnd, &r);
@@ -278,8 +288,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 std::remove_if(carsNS.begin(), carsNS.end(),
                     [&](const Car& c) { return c.y > r.bottom + 60; }),
                 carsNS.end());
+
+            InvalidateRect(hWnd, nullptr, FALSE);
+            return 0;
         }
-        else if (wParam == 3)
+
+        if (wParam == 3)
         {
             float u1 = (float)rand() / (float)RAND_MAX;
             float u2 = (float)rand() / (float)RAND_MAX;
@@ -287,68 +301,90 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (u1 < pw) SpawnEW(hWnd);
             if (u2 < pn) SpawnNS(hWnd);
 
-            InvalidateRect(hWnd, nullptr, TRUE);
-}
-    }
-    InvalidateRect(hWnd, nullptr, TRUE);
-
-    return 0;
-
-    case WM_KEYDOWN:
-    {
-        auto clamp01 = [](float& v) {
-            if (v < 0) v = 0;
-            if (v > 1) v = 1;
-            };
-
-        switch (wParam)
-        {
-        case VK_LEFT:   pw *= 0.9f; clamp01(pw); break;
-        case VK_RIGHT:  pw *= 1.1f; clamp01(pw); break;
-        case VK_UP:     pn *= 1.1f; clamp01(pn); break;
-        case VK_DOWN:   pn *= 0.9f; clamp01(pn); break;
-
-        case 'D':
-            DialogBox(hInst, MAKEINTRESOURCE(IDD_PROB), hWnd, ProbDlg);
-            break;
+            InvalidateRect(hWnd, nullptr, FALSE);
+            return 0;
         }
 
         return 0;
     }
 
+    case WM_KEYDOWN:
+    {
+        const float step = 0.10f;
+
+        switch (wParam)
+        {
+        case 'D':
+            DialogBox(hInst, MAKEINTRESOURCE(IDD_PROB), hWnd, ProbDlg);
+            return 0;
+
+        case VK_RIGHT:  // increase pw (cars from left)
+            pw += step;
+            break;
+
+        case VK_LEFT:   // decrease pw
+            pw -= step;
+            break;
+
+        case VK_UP:     // increase pn (cars going down)
+            pn += step;
+            break;
+
+        case VK_DOWN:   // decrease pn
+            pn -= step;
+            break;
+        }
+
+        // Clamp between 0.0 and 1.0
+        if (pw < 0.0f) pw = 0.0f;
+        if (pw > 1.0f) pw = 1.0f;
+        if (pn < 0.0f) pn = 0.0f;
+        if (pn > 1.0f) pn = 1.0f;
+
+        InvalidateRect(hWnd, nullptr, FALSE);
+        return 0;
+    }
     break;
 
 
 
     case WM_COMMAND:
+    {
+        int wmId = LOWORD(wParam);
+        // Parse the menu selections:
+        switch (wmId)
         {
-            int wmId = LOWORD(wParam);
-            // Parse the menu selections:
-            switch (wmId)
-            {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
+        case IDM_ABOUT:
+            DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+            break;
+        case IDM_EXIT:
+            DestroyWindow(hWnd);
+            break;
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
         }
-        break;
+    }
+    break;
     case WM_PAINT:
     {
         PAINTSTRUCT ps;
-        HDC hdc = BeginPaint(hWnd, &ps);
-
-        // Background
-        HBRUSH bg = CreateSolidBrush(RGB(220, 220, 220));
-        FillRect(hdc, &ps.rcPaint, bg);
-        DeleteObject(bg);
+        HDC paintDC = BeginPaint(hWnd, &ps);
 
         RECT r;
         GetClientRect(hWnd, &r);
+        int w = r.right - r.left;
+        int h = r.bottom - r.top;
+
+        // Double-buffer to reduce flicker
+        HDC memDC = CreateCompatibleDC(paintDC);
+        HBITMAP memBmp = CreateCompatibleBitmap(paintDC, w, h);
+        HBITMAP oldBmp = (HBITMAP)SelectObject(memDC, memBmp);
+        HDC hdc = memDC;
+
+        // Background
+        HBRUSH bg = CreateSolidBrush(RGB(220, 220, 220));
+        FillRect(hdc, &r, bg);
+        DeleteObject(bg);
 
         int roadW = 140;
         int cx = (r.right - r.left) / 2;
@@ -392,26 +428,58 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 DeleteObject(b);
             };
 
-       
+
         bool nsGreen = (phase == NS_GREEN);
         bool nsYellow = (phase == NS_YELLOW);
-        bool nsRed = (phase == EW_GREEN) || (phase == EW_YELLOW);
+        bool nsRed = (phase == EW_GREEN) || (phase == EW_YELLOW) || (phase == EW_REDYELLOW) || (phase == NS_REDYELLOW);
+        bool nsRedYellow = (phase == NS_REDYELLOW);
 
         bool ewGreen = (phase == EW_GREEN);
         bool ewYellow = (phase == EW_YELLOW);
-        bool ewRed = (phase == NS_GREEN) || (phase == NS_YELLOW);
+        bool ewRed = (phase == NS_GREEN) || (phase == NS_YELLOW) || (phase == NS_REDYELLOW) || (phase == EW_REDYELLOW);
+        bool ewRedYellow = (phase == EW_REDYELLOW);
 
-		// NS traffic light  
-        Rectangle(hdc, cx + 80, cy - 180, cx + 140, cy - 20);
-        drawLamp(cx + 95, cy - 165, cx + 125, cy - 135, RGB(255, 0, 0), nsRed);
-        drawLamp(cx + 95, cy - 125, cx + 125, cy - 95, RGB(255, 255, 0), nsYellow);
-        drawLamp(cx + 95, cy - 85, cx + 125, cy - 55, RGB(0, 200, 0), nsGreen);
+        // NS traffic light  
+        Rectangle(hdc, cx + 80, cy - 240, cx + 140, cy - 100);
+        drawLamp(cx + 95, cy - 225, cx + 125, cy - 195, RGB(255, 0, 0), nsRed || nsRedYellow);
+        drawLamp(cx + 95, cy - 185, cx + 125, cy - 155, RGB(255, 255, 0), nsYellow || nsRedYellow);
+        drawLamp(cx + 95, cy - 145, cx + 125, cy - 115, RGB(0, 200, 0), nsGreen);
 
         // EW traffic light
-        Rectangle(hdc, cx - 180, cy + 80, cx - 20, cy + 140);
-        drawLamp(cx - 165, cy + 95, cx - 135, cy + 125, RGB(255, 0, 0), ewRed);
-        drawLamp(cx - 125, cy + 95, cx - 95, cy + 125, RGB(255, 255, 0), ewYellow);
-        drawLamp(cx - 85, cy + 95, cx - 55, cy + 125, RGB(0, 200, 0), ewGreen);
+        Rectangle(hdc, cx - 240, cy + 80, cx - 100, cy + 140);
+        drawLamp(cx - 225, cy + 95, cx - 195, cy + 125, RGB(255, 0, 0), ewRed || ewRedYellow);
+        drawLamp(cx - 185, cy + 95, cx - 155, cy + 125, RGB(255, 255, 0), ewYellow || ewRedYellow);
+        drawLamp(cx - 145, cy + 95, cx - 115, cy + 125, RGB(0, 200, 0), ewGreen);
+
+        // Draw pw/pn next to the traffic lights as percentages.
+        // Note: pw/pn are still stored and edited as decimals (0.10, 0.25, etc.).
+        {
+            int pwPercent = (int)(pw * 100.0f + 0.5f);
+            int pnPercent = (int)(pn * 100.0f + 0.5f);
+
+            HFONT font = CreateFont(
+                22, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
+                DEFAULT_CHARSET, OUT_OUTLINE_PRECIS,
+                CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                VARIABLE_PITCH, TEXT("Arial"));
+
+            HFONT oldFont = (HFONT)SelectObject(hdc, font);
+            SetBkMode(hdc, TRANSPARENT);
+            SetTextColor(hdc, RGB(0, 0, 0));
+
+            wchar_t buf[16];
+
+            // pn: controls cars going down (NS stream). Place near the vertical light.
+            swprintf_s(buf, L"%d%%", pnPercent);
+            TextOut(hdc, cx + 90, cy - 260, buf, (int)wcslen(buf));
+
+            // pw: controls cars from the left (EW stream). Place near the horizontal light.
+            swprintf_s(buf, L"%d%%", pwPercent);
+            TextOut(hdc, cx - 285, cy + 100, buf, (int)wcslen(buf));
+
+            SelectObject(hdc, oldFont);
+            DeleteObject(font);
+        }
 
         // Cars
         HBRUSH carBrush = CreateSolidBrush(RGB(0, 120, 255));
@@ -426,11 +494,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         SelectObject(hdc, oldBrush);
         DeleteObject(carBrush);
 
+        // Present the back buffer
+        BitBlt(paintDC, 0, 0, w, h, memDC, 0, 0, SRCCOPY);
+
+        SelectObject(memDC, oldBmp);
+        DeleteObject(memBmp);
+        DeleteDC(memDC);
+
         EndPaint(hWnd, &ps);
     }
     return 0;
 
-        break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
@@ -441,12 +515,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         int cy = (r.bottom - r.top) / 2;
 
         Car c;
-        c.x = 20;          
-        c.y = cy - 20;     
+        c.x = 20;
+        c.y = cy - 20;
         c.speed = 4.0f;
         carsEW.push_back(c);
 
-        InvalidateRect(hWnd, nullptr, TRUE);
+        InvalidateRect(hWnd, nullptr, FALSE);
     }
     return 0;
 
@@ -457,12 +531,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         int cy = (r.bottom - r.top) / 2;
 
         Car c;
-        c.x = cx - 20;     
-        c.y = 20;          
+        c.x = cx - 20;
+        c.y = 20;
         c.speed = 4.0f;
         carsNS.push_back(c);
 
-        InvalidateRect(hWnd, nullptr, TRUE);
+        InvalidateRect(hWnd, nullptr, FALSE);
     }
     return 0;
 
@@ -472,7 +546,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         srand((unsigned)time(nullptr));
         SetTimer(hWnd, 1, 2000, nullptr); // traffic light
         SetTimer(hWnd, 2, 30, nullptr); // animation
-		SetTimer(hWnd, 3, 1000, nullptr); // 1 time each second, try to spawn new cars based on probabilities
+        SetTimer(hWnd, 3, 1000, nullptr); // 1 time each second, try to spawn new cars based on probabilities
+        SetFocus(hWnd);
     }
     return 0;
 
@@ -530,7 +605,7 @@ INT_PTR CALLBACK ProbDlg(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             pw = (float)_wtof(b1);
             pn = (float)_wtof(b2);
 
-            // clamp 0–1
+            // clamp 0-1
             if (pw < 0) pw = 0; if (pw > 1) pw = 1;
             if (pn < 0) pn = 0; if (pn > 1) pn = 1;
 
