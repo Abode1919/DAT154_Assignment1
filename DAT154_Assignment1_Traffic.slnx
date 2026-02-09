@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="DAT154_Assignment1_Traffic/DAT154_Assignment1_Traffic.vcxproj" />
+  <Project Path="DAT154_Assignment1_Traffic/DAT154_Assignment1_Traffic.vcxproj" Id="c3fde931-cbe2-4aa5-98ef-8f2ec1764261" />
 </Solution>

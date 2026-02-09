@@ -296,12 +296,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_KEYDOWN:
     {
-        if (wParam == 'D')
+        auto clamp01 = [](float& v) {
+            if (v < 0) v = 0;
+            if (v > 1) v = 1;
+            };
+
+        switch (wParam)
         {
+        case VK_LEFT:   pw *= 0.9f; clamp01(pw); break;
+        case VK_RIGHT:  pw *= 1.1f; clamp01(pw); break;
+        case VK_UP:     pn *= 1.1f; clamp01(pn); break;
+        case VK_DOWN:   pn *= 0.9f; clamp01(pn); break;
+
+        case 'D':
             DialogBox(hInst, MAKEINTRESOURCE(IDD_PROB), hWnd, ProbDlg);
-            return 0;
+            break;
         }
+
+        return 0;
     }
+
     break;
 
 

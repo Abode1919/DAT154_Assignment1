@@ -1,4 +1,4 @@
 ﻿  DAT154_Assignment1_Traffic.cpp
-C:\Users\ghose\Desktop\DAT154_ScratchTrafikk\DAT154_Assignment1_Traffic\DAT154_Assignment1_Traffic\DAT154_Assignment1_Traffic.cpp(431,18): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-C:\Users\ghose\Desktop\DAT154_ScratchTrafikk\DAT154_Assignment1_Traffic\DAT154_Assignment1_Traffic\DAT154_Assignment1_Traffic.cpp(446,18): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\ghose\Desktop\DAT154_ScratchTrafikk\DAT154_Assignment1_Traffic\DAT154_Assignment1_Traffic\DAT154_Assignment1_Traffic.cpp(445,18): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\ghose\Desktop\DAT154_ScratchTrafikk\DAT154_Assignment1_Traffic\DAT154_Assignment1_Traffic\DAT154_Assignment1_Traffic.cpp(460,18): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
   DAT154_Assignment1_Traffic.vcxproj -> C:\Users\ghose\Desktop\DAT154_ScratchTrafikk\DAT154_Assignment1_Traffic\x64\Debug\DAT154_Assignment1_Traffic.exe
