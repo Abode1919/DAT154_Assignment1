@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="DAT154_Assignment1_Traffic/DAT154_Assignment1_Traffic.vcxproj" />
+</Solution>
